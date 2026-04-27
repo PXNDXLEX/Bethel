@@ -54,6 +54,39 @@ export const orderService = {
     return data;
   },
 
+  async getDebts() {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        id,
+        debt_amount,
+        total_usd,
+        date,
+        clients (id, name, phone)
+      `)
+      .gt('debt_amount', 0)
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    
+    // Agrupar por cliente
+    const grouped = (data as any[]).reduce((acc, order) => {
+      const clientId = order.clients.id;
+      if (!acc[clientId]) {
+        acc[clientId] = {
+          client: order.clients,
+          total_debt: 0,
+          orders: []
+        };
+      }
+      acc[clientId].total_debt += order.debt_amount;
+      acc[clientId].orders.push(order);
+      return acc;
+    }, {});
+
+    return Object.values(grouped);
+  },
+
   async updateStatus(id: number, status: string) {
     const { error } = await supabase
       .from('orders')
