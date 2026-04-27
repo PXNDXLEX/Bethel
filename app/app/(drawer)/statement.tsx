@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity, Modal, TextInput } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { Wallet, TrendingUp, TrendingDown, ShoppingBag } from 'lucide-react-native';
 import { MotiView } from 'moti';
