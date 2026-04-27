@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Linking, Modal, TextInput, ScrollView } from 'react-native';
 import { clientService } from '@/services/clientService';
-import { Crown, MessageCircle, Phone, Search } from 'lucide-react-native';
-import { MotiView } from 'moti';
+import { Crown, MessageCircle, Phone, Search, UserPlus, X, User } from 'lucide-react-native';
+import { MotiView, AnimatePresence } from 'moti';
 
 export default function ClientsScreen() {
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newPhone, setNewPhone] = useState('');
 
   useEffect(() => {
     loadClients();
@@ -21,6 +24,18 @@ export default function ClientsScreen() {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!newName) return;
+    try {
+      await clientService.save({ name: newName, phone: newPhone });
+      setModalVisible(false);
+      setNewName(''); setNewPhone('');
+      loadClients();
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -76,9 +91,14 @@ export default function ClientsScreen() {
 
   return (
     <View className="flex-1 bg-slate-50 dark:bg-slate-900 p-4">
-      <View className="mb-6">
-        <Text className="text-2xl font-black text-slate-800 dark:text-white">Top Clientes VIP</Text>
-        <Text className="text-slate-500 dark:text-slate-400 font-bold">Tus clientes más fieles ordenados por compra</Text>
+      <View className="flex-row justify-between items-center mb-6">
+        <View>
+          <Text className="text-2xl font-black text-slate-800 dark:text-white">Top Clientes VIP</Text>
+          <Text className="text-slate-500 dark:text-slate-400 font-bold">Tus clientes más fieles</Text>
+        </View>
+        <TouchableOpacity onPress={() => setModalVisible(true)} className="bg-brand-500 p-3 rounded-2xl shadow-lg">
+          <UserPlus size={24} color="white" />
+        </TouchableOpacity>
       </View>
 
       {loading ? (
@@ -96,6 +116,33 @@ export default function ClientsScreen() {
           }
         />
       )}
+
+      {/* Modal Nuevo Cliente */}
+      <Modal visible={modalVisible} animationType="slide" transparent={true}>
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-white dark:bg-slate-800 rounded-t-[40px] p-6 pb-12">
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="text-2xl font-black text-slate-800 dark:text-white">Nuevo Cliente</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}><X size={24} color="#94a3b8" /></TouchableOpacity>
+            </View>
+            
+            <View className="space-y-4">
+              <View className="bg-slate-100 dark:bg-slate-700 p-4 rounded-2xl flex-row items-center">
+                <User size={18} color="#94a3b8" />
+                <TextInput value={newName} onChangeText={setNewName} className="flex-1 ml-3 text-lg font-bold dark:text-white" placeholder="Nombre completo" />
+              </View>
+              <View className="bg-slate-100 dark:bg-slate-700 p-4 rounded-2xl flex-row items-center">
+                <Phone size={18} color="#94a3b8" />
+                <TextInput value={newPhone} onChangeText={setNewPhone} className="flex-1 ml-3 text-lg font-bold dark:text-white" placeholder="Teléfono" />
+              </View>
+              
+              <TouchableOpacity onPress={handleSave} className="bg-brand-500 py-4 rounded-2xl mt-6 shadow-lg">
+                <Text className="text-white font-black text-center text-lg uppercase">Guardar Cliente</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
